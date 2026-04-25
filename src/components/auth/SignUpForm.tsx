@@ -111,7 +111,7 @@ export function SignUpForm() {
       )}
       <button
         type="submit"
-        className="w-full py-4 px-8 signature-gradient text-white rounded-full font-bold font-headline text-lg shadow-lg shadow-[#3525cd]/20 active:scale-95 transition-all duration-300 mt-4 disabled:opacity-60 disabled:cursor-not-allowed"
+        className="w-full py-4 px-8 signature-gradient text-white rounded-full font-bold font-headline text-lg shadow-lg shadow-primary/20 active:scale-95 transition-all duration-300 mt-4 disabled:opacity-60 disabled:cursor-not-allowed"
       >
         {loading ? "Creating Account..." : "Begin Session"}
       </button>

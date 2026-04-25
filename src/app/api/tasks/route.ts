@@ -1,5 +1,6 @@
+
 import { cookies } from "next/headers";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { dbConnect } from "@/lib/mongodb";
 import Task from "@/models/Task";
 import { verifyAuthToken } from "@/lib/auth";
@@ -10,6 +11,7 @@ export async function GET() {
     const token = cookieStore.get("token")?.value;
 
     if (!token) {
+      console.error("TASKS_GET: no token cookie");
       return NextResponse.json(
         { success: false, message: "Not authenticated." },
         { status: 401 }
@@ -19,6 +21,7 @@ export async function GET() {
     const payload = verifyAuthToken(token);
 
     if (!payload) {
+      console.error("TASKS_GET: invalid token");
       return NextResponse.json(
         { success: false, message: "Invalid token." },
         { status: 401 }
@@ -47,12 +50,13 @@ export async function GET() {
   }
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
     const cookieStore = await cookies();
     const token = cookieStore.get("token")?.value;
 
     if (!token) {
+      console.error("TASKS_POST: no token cookie");
       return NextResponse.json(
         { success: false, message: "Not authenticated." },
         { status: 401 }
@@ -62,6 +66,7 @@ export async function POST(request: Request) {
     const payload = verifyAuthToken(token);
 
     if (!payload) {
+      console.error("TASKS_POST: invalid token");
       return NextResponse.json(
         { success: false, message: "Invalid token." },
         { status: 401 }
@@ -87,6 +92,7 @@ export async function POST(request: Request) {
       userId: payload.userId,
       title,
       course,
+      // make sure dueDate is valid in production too
       dueDate: new Date(dueDate),
       priority: priority || "medium",
       status: "pending",
