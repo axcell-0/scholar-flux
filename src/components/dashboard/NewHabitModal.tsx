@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useToast } from "@/components/ui/ToastProvider";
 
 type NewHabitModalProps = {
   open: boolean;
@@ -16,6 +17,8 @@ export function NewHabitModal({ open, onClose, onCreated }: NewHabitModalProps) 
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+    const { showToast } = useToast(); // ✅ get showToast from context
 
   if (!open) return null;
 
@@ -52,14 +55,18 @@ export function NewHabitModal({ open, onClose, onCreated }: NewHabitModalProps) 
       const data = await res.json();
 
       if (!res.ok || !data.success) {
+        showToast(data?.message || "Failed to create habit.", "error");
         setError(data.message || "Failed to create habit.");
         return;
       }
+        showToast("Habit created successfully!", "success");
 
       setForm({ name: "", targetFrequency: "daily" });
       onClose();
       onCreated();
     } catch (err) {
+      console.error(err);
+        showToast("Something went wrong. Please try again.", "error");
       setError("Something went wrong. Please try again.");
     } finally {
       setLoading(false);

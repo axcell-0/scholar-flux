@@ -12,7 +12,7 @@ export function AuthTabs({ activeTab, onTabChange }: AuthTabsProps) {
         className={`flex-1 py-3 text-sm font-bold font-headline rounded-xl transition-all duration-300 ${
           activeTab === "signup"
             ? "bg-white text-primary shadow-sm"
-            : "text-outline hover:text-inverse-primary"
+            : "text-outline hover:bg-white/50"
         }`}
       >
         Sign Up
@@ -24,7 +24,7 @@ export function AuthTabs({ activeTab, onTabChange }: AuthTabsProps) {
         className={`flex-1 py-3 text-sm font-bold font-headline rounded-xl transition-all duration-300 ${
           activeTab === "login"
             ? "bg-white text-primary shadow-sm"
-            : "text-outline hover:text-inverse-primary"
+            : "text-outline hover:bg-white/50"
         }`}
       >
         Log In

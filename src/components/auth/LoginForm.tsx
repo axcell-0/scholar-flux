@@ -3,9 +3,10 @@
 import { useState } from "react";
 import { IconInput } from "../ui/IconInput";
 import { useRouter } from "next/navigation";
+import { useToast } from "@/components/ui/ToastProvider";
 
 type LoginResponse = {
-  success : boolean;
+  success: boolean;
   message: string;
   user?: {
     id: string;
@@ -18,6 +19,8 @@ type LoginResponse = {
 
 export function LoginForm() {
   const router = useRouter();
+  const { showToast } = useToast();
+
   const [form, setForm] = useState({
     email: "",
     password: "",
@@ -39,10 +42,19 @@ export function LoginForm() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    
+
     setLoading(true);
     setError("");
     setSuccess("");
+
+    // basic client validation
+    if (!form.email || !form.password) {
+      const message = "Please enter both email and password.";
+      setError(message);
+      showToast(message, "error");
+      setLoading(false);
+      return;
+    }
 
     try {
       const response = await fetch("/api/auth/login", {
@@ -50,34 +62,50 @@ export function LoginForm() {
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include",
         body: JSON.stringify(form),
-    });
+      });
 
-    const data: LoginResponse = await response.json();
+      const data: LoginResponse = await response.json();
 
-    if (!response.ok) {
-      setError(data.message || "Login failed.");
-      return;
-    }
+      if (response.status === 401 || !data.success) {
+        const message = data?.message || "Email or password is incorrect.";
+        setError(message);
+        showToast(message, "error");
+        return;
+      }
 
-    setSuccess(data.message || "Login successful.");
+      if (!response.ok) {
+        const message = "We couldn’t log you in. Please try again.";
+        setError(message);
+        showToast(message, "error");
+        return;
+      }
 
-    console.log("Logged in user:", data.user);
+      const message = data.message || "Login successful.";
+      setSuccess(message);
+      showToast("Welcome back to Scholar Flux.");
 
       setForm({
         email: "",
         password: "",
       });
+
       setTimeout(() => {
         router.refresh();
         router.push("/dashboard");
-      }, 1000);
+      }, 500);
     } catch (error) {
-      setError("An error occurred during login. Please try again.");
+      console.error(error);
+      const message =
+        "An error occurred during login. Please check your connection and try again.";
+      setError(message);
+      showToast(message, "error");
     } finally {
       setLoading(false);
     }
   };
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <IconInput
@@ -101,13 +129,13 @@ export function LoginForm() {
       />
 
       {error && (
-        <p className="text-red-600 text-sm font-medium">
+        <p className="text-error text-sm font-medium">
           {error}
         </p>
       )}
 
       {success && (
-        <p className="text-green-600 text-sm font-medium">
+        <p className="text-on-secondary text-sm font-medium">
           {success}
         </p>
       )}
@@ -115,7 +143,7 @@ export function LoginForm() {
       <button
         type="submit"
         disabled={loading}
-        className="w-full py-4 px-8 signature-gradient text-white rounded-full font-bold font-headline text-lg shadow-lg shadow-[#3525cd]/20 active:scale-95 transition-all duration-300 mt-4 disabled:opacity-60 disabled:cursor-not-allowed"
+        className="w-full py-4 px-8 signature-gradient text-white rounded-full font-bold font-headline text-lg shadow-lg shadow-primary/20 active:scale-95 transition-all duration-300 mt-4 disabled:opacity-60 disabled:cursor-not-allowed"
       >
         {loading ? "Logging in..." : "Login"}
       </button>

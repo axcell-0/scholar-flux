@@ -22,7 +22,7 @@ export function SidebarLink({ href, icon, label, onClick }: SidebarLinkProps) {
     "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors";
   const activeClasses = "bg-[#3525cd]/10 text-[#3525cd]";
   const inactiveClasses =
-    "text-[#777587] hover:text-[#eaf1ff] hover:bg-surface-container";
+    "text-[#777587] hover:bg-surface-container";
 
   return (
     <Link

@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import { IconInput } from "../ui/IconInput";
+import { useToast } from "@/components/ui/ToastProvider";
+import { useRouter } from "next/navigation";
 
-type RegisterResponse= {
+type RegisterResponse = {
   success: boolean;
   message: string;
   user?: {
@@ -21,48 +23,71 @@ export function SignUpForm() {
   });
 
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState("");
+
+  const { showToast } = useToast();
+  const router = useRouter();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm((prev) => ({
       ...prev,
       [e.target.name]: e.target.value,
     }));
-    setError("");
+    setError(null);
     setSuccess("");
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError("");
+    setError(null);
     setSuccess("");
 
-    try{
-      const response = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(form),
-      });
-      const data: RegisterResponse = await response.json();
+    // simple client-side check
+    if (!form.fullName || !form.email || !form.password) {
+      const message = "Please fill in name, email, and password.";
+      setError(message);
+      showToast(message, "error");
+      setLoading(false);
+      return;
+    }
 
-      if (!response.ok) {
-        setError(data.message || "Registration failed. Please try again.");
+    try {
+      const res = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          fullName: form.fullName,
+          email: form.email,
+          password: form.password,
+          // add department/level here if your API expects them,
+          // e.g. department: form.department, level: form.level
+        }),
+      });
+
+      const data: RegisterResponse = await res.json();
+
+      if (!res.ok || !data.success) {
+        const message =
+          data?.message ||
+          (res.status === 409
+            ? "This email is already registered."
+            : "We couldn’t create your account.");
+        setError(message);
+        showToast(message, "error");
         return;
       }
 
-      setSuccess(data.message || "Account created successfully! You can now log in.");
-      setForm({
-        fullName: "",
-        email: "",
-        password: "",
-      });
-    }
-    catch (err) {
-      setError("Something went wrong. Please try again later.");
+      setSuccess("Account created successfully.");
+      showToast("Account created. Welcome to Scholar Flux!");
+      router.push("/login"); // or "/login" if you prefer
+    } catch (err) {
+      console.error(err);
+      const message = "Something went wrong. Please try again.";
+      setError(message);
+      showToast(message, "error");
     } finally {
       setLoading(false);
     }
@@ -100,17 +125,19 @@ export function SignUpForm() {
       />
 
       {error && (
-        <p className="text-sm text-red-600 font-medium">
+        <p className="text-sm text-error font-medium">
           {error}
         </p>
       )}
       {success && (
-        <p className="text-sm text-green-600 font-medium">
+        <p className="text-sm text-on-secondary font-medium">
           {success}
         </p>
       )}
+
       <button
         type="submit"
+        disabled={loading}
         className="w-full py-4 px-8 signature-gradient text-white rounded-full font-bold font-headline text-lg shadow-lg shadow-primary/20 active:scale-95 transition-all duration-300 mt-4 disabled:opacity-60 disabled:cursor-not-allowed"
       >
         {loading ? "Creating Account..." : "Begin Session"}

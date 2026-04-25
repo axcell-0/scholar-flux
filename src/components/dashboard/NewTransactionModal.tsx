@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useToast } from "@/components/ui/ToastProvider";
 
 type NewTransactionModalProps = {
   open: boolean;
@@ -20,6 +21,8 @@ export function NewTransactionModal({ open, onClose, onCreated }: NewTransaction
 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+
+    const { showToast } = useToast(); // ✅ get showToast from context
 
   if (!open) return null;
 
@@ -59,9 +62,11 @@ export function NewTransactionModal({ open, onClose, onCreated }: NewTransaction
         const data = await res.json();
 
         if (!res.ok || !data.success) {
+          showToast(data?.message || "Failed to create transaction.", "error");
         setError(data.message || "Failed to create transaction.");
         return;
       }
+        showToast("Transaction created successfully!", "success");
 
         setForm({
       title: "",
@@ -74,6 +79,8 @@ export function NewTransactionModal({ open, onClose, onCreated }: NewTransaction
         onClose();
         onCreated();
   } catch (err) {
+      console.error(err);
+        showToast("An error occurred while creating the transaction.", "error");
     setError("An error occurred while creating the transaction.");
      } finally {
         setLoading(false);
