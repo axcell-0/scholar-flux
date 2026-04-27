@@ -92,6 +92,11 @@ export function DashboardShell({
                         icon="account_circle"
                         label="Profile"
                     />
+                    <SidebarLink
+                        href="/dashboard/notes"
+                        icon="sticky_note_2"
+                        label="Notes"
+                    />
                 </nav>
 
                 <div className="mt-auto pt-6 border-t border-outline-variant/30">
@@ -176,6 +181,13 @@ export function DashboardShell({
                                 href="/dashboard/profile"
                                 icon="account_circle"
                                 label="Profile"
+                                onClick={() => setSidebarOpen(false)}
+                            />
+
+                            <SidebarLink
+                                href="/dashboard/notes"
+                                icon="sticky_note_2"
+                                label="Notes"
                                 onClick={() => setSidebarOpen(false)}
                             />
                         </nav>

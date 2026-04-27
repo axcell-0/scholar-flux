@@ -1,20 +1,21 @@
-// src/app/api/transactions/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
 import { dbConnect } from "@/lib/mongodb";
-import Transaction from "@/models/Transaction";
+import Note from "@/models/Note";
 import { verifyAuthToken } from "@/lib/auth";
+import { cookies } from "next/headers";
 
 async function getUserIdFromRequest() {
   const cookieStore = await cookies();
   const token = cookieStore.get("token")?.value;
+
   if (!token) return null;
 
   const payload = verifyAuthToken(token);
-  return payload?.userId ?? null;
+  if (!payload) return null;
+
+  return payload.userId;
 }
 
-// GET: list all transactions for current user
 export async function GET() {
   try {
     const userId = await getUserIdFromRequest();
@@ -27,25 +28,27 @@ export async function GET() {
 
     await dbConnect();
 
-    const transactions = await Transaction.find({ userId })
-      .sort({ date: -1, createdAt: -1 })
+    const notes = await Note.find({ userId })
+      .sort({ pinned: -1, updatedAt: -1 })
       .lean();
 
     return NextResponse.json(
-      { success: true, transactions },
+      {
+        success: true,
+        notes,
+      },
       { status: 200 }
     );
   } catch (error) {
-    console.error("TRANSACTIONS_GET_ERROR", error);
+    console.error("NOTES_GET_ERROR", error);
     return NextResponse.json(
-      { success: false, message: "Failed to fetch transactions." },
+      { success: false, message: "Failed to fetch notes." },
       { status: 500 }
     );
   }
 }
 
-// POST: create a new transaction
-export async function POST(req: NextRequest) {
+export async function POST(request: NextRequest) {
   try {
     const userId = await getUserIdFromRequest();
     if (!userId) {
@@ -55,14 +58,14 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const body = await req.json();
-    const { type, amount, category, description, date } = body;
+    const body = await request.json();
+    const { title, course, content } = body;
 
-    if (!type || !amount || !category || !date) {
+    if (!title || !content) {
       return NextResponse.json(
         {
           success: false,
-          message: "Type, amount, category, and date are required.",
+          message: "Title and content are required.",
         },
         { status: 400 }
       );
@@ -70,30 +73,31 @@ export async function POST(req: NextRequest) {
 
     await dbConnect();
 
-    const transaction = await Transaction.create({
+    const note = await Note.create({
       userId,
-      type,
-      amount,
-      category,
-      description,
-      date: new Date(date),
+      title,
+      course,
+      content,
     });
 
     return NextResponse.json(
-      { success: true, message: "Transaction created.", transaction },
+      {
+        success: true,
+        note,
+      },
       { status: 201 }
     );
   } catch (error) {
-    console.error("TRANSACTIONS_POST_ERROR", error);
+    console.error("NOTES_POST_ERROR", error);
     return NextResponse.json(
-      { success: false, message: "Failed to create transaction." },
+      { success: false, message: "Failed to create note." },
       { status: 500 }
     );
   }
 }
 
-// PUT: update a transaction
-export async function PUT(req: NextRequest) {
+// ✅ UPDATE existing note
+export async function PUT(request: NextRequest) {
   try {
     const userId = await getUserIdFromRequest();
     if (!userId) {
@@ -103,52 +107,50 @@ export async function PUT(req: NextRequest) {
       );
     }
 
-    const body = await req.json();
-    const { id, type, amount, category, description, date } = body;
+    const body = await request.json();
+    const { id, title, course, content } = body;
 
     if (!id) {
       return NextResponse.json(
-        { success: false, message: "Transaction id is required." },
+        { success: false, message: "Note id is required." },
         { status: 400 }
       );
     }
 
     await dbConnect();
 
-    const transaction = await Transaction.findOneAndUpdate(
+    const note = await Note.findOneAndUpdate(
       { _id: id, userId },
       {
-        ...(type !== undefined && { type }),
-        ...(amount !== undefined && { amount }),
-        ...(category !== undefined && { category }),
-        ...(description !== undefined && { description }),
-        ...(date !== undefined && { date: new Date(date) }),
+        ...(title !== undefined && { title }),
+        ...(course !== undefined && { course }),
+        ...(content !== undefined && { content }),
       },
       { new: true }
     ).lean();
 
-    if (!transaction) {
+    if (!note) {
       return NextResponse.json(
-        { success: false, message: "Transaction not found." },
+        { success: false, message: "Note not found." },
         { status: 404 }
       );
     }
 
     return NextResponse.json(
-      { success: true, message: "Transaction updated.", transaction },
+      { success: true, message: "Note updated.", note },
       { status: 200 }
     );
   } catch (error) {
-    console.error("TRANSACTIONS_PUT_ERROR", error);
+    console.error("NOTES_PUT_ERROR", error);
     return NextResponse.json(
-      { success: false, message: "Failed to update transaction." },
+      { success: false, message: "Failed to update note." },
       { status: 500 }
     );
   }
 }
 
-// DELETE: delete a transaction
-export async function DELETE(req: NextRequest) {
+// ✅ DELETE existing note
+export async function DELETE(request: NextRequest) {
   try {
     const userId = await getUserIdFromRequest();
     if (!userId) {
@@ -158,35 +160,35 @@ export async function DELETE(req: NextRequest) {
       );
     }
 
-    const body = await req.json();
+    const body = await request.json();
     const { id } = body;
 
     if (!id) {
       return NextResponse.json(
-        { success: false, message: "Transaction id is required." },
+        { success: false, message: "Note id is required." },
         { status: 400 }
       );
     }
 
     await dbConnect();
 
-    const deleted = await Transaction.findOneAndDelete({ _id: id, userId }).lean();
+    const deleted = await Note.findOneAndDelete({ _id: id, userId }).lean();
 
     if (!deleted) {
       return NextResponse.json(
-        { success: false, message: "Transaction not found." },
+        { success: false, message: "Note not found." },
         { status: 404 }
       );
     }
 
     return NextResponse.json(
-      { success: true, message: "Transaction deleted." },
+      { success: true, message: "Note deleted." },
       { status: 200 }
     );
   } catch (error) {
-    console.error("TRANSACTIONS_DELETE_ERROR", error);
+    console.error("NOTES_DELETE_ERROR", error);
     return NextResponse.json(
-      { success: false, message: "Failed to delete transaction." },
+      { success: false, message: "Failed to delete note." },
       { status: 500 }
     );
   }

@@ -3,17 +3,22 @@
 import { useState } from "react";
 import { useToast } from "@/components/ui/ToastProvider";
 
+
 type TaskModalProps = {
   open: boolean;
   onClose: () => void;
+  initialTask?: any;
+  mode?: "create" | "edit";
+  onSaved?: (task: any) => void;
 };
 
-export function TaskModal({ open, onClose }: TaskModalProps) {
+export function TaskModal({ open, onClose, initialTask, mode = "create", onSaved, }: TaskModalProps) {
   const [form, setForm] = useState({
-    title: "",
-    course: "",
-    dueDate: "",
-    priority: "medium",
+    title: initialTask?.title ?? "",
+    course: initialTask?.course ?? "",
+    dueDate: initialTask?.duedate
+    ? new Date(initialTask.dueDate).toISOString().slice(0,10): "",
+    priority: initialTask?.priority ?? "medium",
   });
 
   const [loading, setLoading] = useState(false);
@@ -33,48 +38,53 @@ export function TaskModal({ open, onClose }: TaskModalProps) {
     setError("");
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
+ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  e.preventDefault();
+  setLoading(true);
+  setError("");
 
-    if (!form.title || !form.course || !form.dueDate) {
-      setError("Please fill in title, course, and due date.");
-      setLoading(false);
+  if (!form.title || !form.course || !form.dueDate) {
+    setError("Please fill in title, course, and due date.");
+    setLoading(false);
+    return;
+  }
+
+  try {
+    const method = mode === "edit" ? "PUT" : "POST";
+    const body =
+      mode === "edit" && initialTask
+        ? { id: initialTask.id, ...form } // note: your Task type uses id, not _id
+        : form;
+
+    const response = await fetch("/api/tasks", {
+      method,
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify(body),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok || !data.success) {
+      showToast(data?.message || "Failed to save task.", "error");
+      setError(data?.message || "Failed to save task.");
       return;
     }
 
-    try {
-      const response = await fetch("/api/tasks", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include", // keep cookies in production
-        body: JSON.stringify(form),
-      });
+    showToast(
+      mode === "edit" ? "Task updated." : "Task added to your planner."
+    );
 
-      const data = await response.json();
-
-      if (!response.ok || !data.success) {
-        showToast(data?.message || "Failed to create task.", "error");
-        setError(data?.message || "Failed to create task.");
-        return;
-      }
-
-      // ✅ success path
-      showToast("Task added to your planner.");
-      onClose();
-      // Ideally refetch tasks instead of full reload, but for now:
-      window.location.reload();
-    } catch (err) {
-      console.error(err);
-      showToast("Something went wrong. Please try again.", "error");
-      setError("Something went wrong. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
+    onSaved?.(data.task);
+    onClose();
+  } catch (err) {
+    console.error(err);
+    showToast("Something went wrong. Please try again.", "error");
+    setError("Something went wrong. Please try again.");
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div

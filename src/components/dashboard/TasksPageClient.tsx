@@ -2,6 +2,8 @@
 
 import { useMemo, useState } from "react";
 import { TaskModal } from "@/components/dashboard/TaskModal";
+import { useToast } from "@/components/ui/ToastProvider";
+import { Trash2 } from "lucide-react";
 
 type Task = {
     id: string;
@@ -24,25 +26,66 @@ function isTaskUrgent(dueDate: string | null, hoursWindow = 24) {
     const diffMs = due.getTime() - now.getTime();
     const diffHours = diffMs / (1000 * 60 * 60);
 
+
     // urgent if due in the next 'hoursWindow' hours but still in the future
     return diffHours > 0 && diffHours <= hoursWindow;
 }
 
 export function TasksPageClient({ tasks }: Props) {
-    const [filter, setFilter] = useState<
-        "today" | "upcoming" | "completed"
-    >("today");
-    const [modalOpen, setModalOpen] = useState(false);
+    const [filter, setFilter] = useState<"today" | "upcoming" | "completed">(
+        "today"
+    );
+
+    const [taskList, setTaskList] = useState<Task[]>(tasks);
+    const [isNewTaskOpen, setIsNewTaskOpen] = useState(false);
+    const [editingTask, setEditingTask] = useState<Task | null>(null);
+    const { showToast } = useToast();
 
     const todayKey = new Date().toISOString().slice(0, 10);
 
+    const handleTaskCreated = (task: Task) => {
+        setTaskList((prev) => [task, ...prev]);
+    };
+
+    const handleTaskUpdate = (task: Task) => {
+        setTaskList((prev) =>
+            prev.map((t) => (t.id === task.id || (t as any)._id === (task as any)._id ? task : t))
+        );
+    };
+
+    const handleDeleteTask = async (id: string) => {
+        if (!confirm("Delete this task?")) return;
+
+        try {
+            const res = await fetch("/api/tasks", {
+                method: "DELETE",
+                headers: { "Content-Type": "application/json" },
+                credentials: "include",
+                body: JSON.stringify({ id }),
+            }
+            );
+
+            const data = await res.json();
+            if (!res.ok || !data.success) {
+                showToast(data?.message || "Failed to delete task.", "error");
+                return;
+            }
+
+            showToast("Task deleted.");
+            setTaskList((prev) => prev.filter((t) => t.id !== id));
+        } catch (error) {
+            console.error(error);
+            showToast("Something went wrong. Please try again.", "error");
+        }
+    }
+
     const filteredTasks = useMemo(() => {
         if (filter === "completed") {
-            return tasks.filter((t) => t.status === "completed");
+            return taskList.filter((t) => t.status === "completed");
         }
 
         if (filter === "today") {
-            return tasks.filter((t) => {
+            return taskList.filter((t) => {
                 if (!t.dueDate) return false;
                 const dateKey = new Date(t.dueDate).toISOString().slice(0, 10);
                 return dateKey === todayKey && t.status !== "completed";
@@ -50,13 +93,13 @@ export function TasksPageClient({ tasks }: Props) {
         }
 
         // upcoming
-        return tasks.filter((t) => {
+        return taskList.filter((t) => {
             if (!t.dueDate) return false;
             const date = new Date(t.dueDate);
             const today = new Date(todayKey);
             return date > today && t.status !== "completed";
         });
-    }, [tasks, filter, todayKey]);
+    }, [taskList, filter, todayKey]);
 
     const featured =
         filteredTasks.find((t) => t.status === "in-progress") ||
@@ -83,7 +126,7 @@ export function TasksPageClient({ tasks }: Props) {
                     </div>
                     <button
                         type="button"
-                        onClick={() => setModalOpen(true)}
+                        onClick={() => setIsNewTaskOpen(true)}
                         className="bg-linear-to-br from-primary to-primary-container text-on-primary px-8 py-4 rounded-full font-headline font-bold text-lg shadow-lg shadow-indigo-200/50 flex items-center gap-2 active:scale-95 transition-transform"
                     >
                         <span className="material-symbols-outlined">add</span>
@@ -169,8 +212,32 @@ export function TasksPageClient({ tasks }: Props) {
                                 65%
                             </span>
                         </div>
+                        <div className="mt-4 flex items-center justify-between">
+                            <span className="text-xs font-label text-outline">
+                                {featured.dueDate
+                                    ? new Date(featured.dueDate).toLocaleDateString()
+                                    : "No date"}
+                            </span>
+                            <div className="flex items-center gap-3">
+                                <button
+                                    type="button"
+                                    onClick={() => setEditingTask(featured)}
+                                    className="text-[11px] text-on-surface-variant hover:text-primary"
+                                >
+                                    Edit
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => handleDeleteTask(featured.id)}
+                                    className="text-[11px] text-error hover:text-error/80"
+                                >
+                                    <Trash2  size={18}/>
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 )}
+
 
                 {/* Small card for another task (if available) */}
                 {others[0] && (
@@ -199,9 +266,22 @@ export function TasksPageClient({ tasks }: Props) {
                                     ? new Date(others[0].dueDate).toLocaleDateString()
                                     : "No date"}
                             </span>
-                            <span className="material-symbols-outlined text-outline">
-                                more_horiz
-                            </span>
+                            <div className="flex items-center gap-3">
+                                <button
+                                    type="button"
+                                    onClick={() => setEditingTask(others[0])}
+                                    className="text-[11px] text-on-surface-variant hover:text-primary"
+                                >
+                                    Edit
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => handleDeleteTask(others[0].id)}
+                                    className="text-[11px] text-error hover:text-error/80"
+                                >
+                                    <Trash2  size={18}/>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 )}
@@ -259,10 +339,27 @@ export function TasksPageClient({ tasks }: Props) {
                                         : "No date"}
                                 </span>
                             </div>
-                            <div className="w-8 h-8 rounded-full flex items-center justify-center bg-surface-container group-hover:bg-primary group-hover:text-white transition-all">
-                                <span className="material-symbols-outlined text-sm">
-                                    chevron_right
-                                </span>
+                            <div className="flex items-center gap-4">
+                                {/* Chevron button (optional, for navigation) */}
+                                <button
+                                    type="button"
+                                    className="w-8 h-8 rounded-full flex items-center justify-center bg-surface-container group-hover:bg-primary group-hover:text-white transition-all"
+                                >
+                                    <span className="material-symbols-outlined text-sm">
+                                        chevron_right
+                                    </span>
+                                </button>
+
+                                {/* Edit / Delete actions */}
+                                <div className="flex items-center gap-3">
+                                    <button
+                                        type="button"
+                                        onClick={() => handleDeleteTask(task.id)}
+                                        className="text-[11px] text-error hover:text-error/80"
+                                    >
+                                        <Trash2  size={18}/>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -285,10 +382,24 @@ export function TasksPageClient({ tasks }: Props) {
             </div>
 
             {/* New Task modal (reuses your existing TaskModal) */}
-            <TaskModal
-                open={modalOpen}
-                onClose={() => setModalOpen(false)}
-            />
+            {isNewTaskOpen && (
+                <TaskModal
+                    open={isNewTaskOpen}
+                    onClose={() => setIsNewTaskOpen(false)}
+                    mode="create"
+                    onSaved={handleTaskCreated}
+                />
+            )}
+            {/* Edit Task modal */}
+            {editingTask && (
+                <TaskModal
+                    open={true}
+                    onClose={() => setEditingTask(null)}
+                    initialTask={editingTask}
+                    mode="edit"
+                    onSaved={handleTaskUpdate}
+                />
+            )}
         </>
     );
 }

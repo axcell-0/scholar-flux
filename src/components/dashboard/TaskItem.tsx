@@ -39,15 +39,15 @@ export function TaskItem({ task }: TaskItemProps) {
     : "No date";
 
   return (
-    <div className="flex items-start justify-between gap-3 bg-white/60 rounded-xl px-3 py-3 border border-[#c7c4d8]/30">
+    <div className="flex items-start justify-between gap-3 bg-white/60 rounded-xl px-3 py-3 border border-outline-variant/30">
       <div className="flex-1">
-        <p className="text-sm font-semibold text-[#eaf1ff]">
+        <p className="text-sm font-semibold text-on-surface">
           {task.title}
         </p>
-        <p className="text-[11px] font-medium text-[#777587] mt-0.5">
+        <p className="text-[11px] font-medium text-outline mt-0.5">
           {task.course} · Due {dueDateText}
         </p>
-        <p className="text-[11px] text-[#777587] mt-1">
+        <p className="text-[11px] text-outline mt-1">
           Status: {task.status}
         </p>
       </div>
@@ -58,8 +58,8 @@ export function TaskItem({ task }: TaskItemProps) {
             task.priority === "high"
               ? "bg-error/10 text-error"
               : task.priority === "medium"
-              ? "bg-[#006c49]/10 text-[#006c49]"
-              : "bg-[#c7c4d8]/40 text-[#777587]"
+              ? "bg-secondary/10 text-secondary"
+              : "bg-outline-variant/40 text-outline"
           }`}
         >
           {task.priority?.toUpperCase() ?? "MEDIUM"}
@@ -69,11 +69,12 @@ export function TaskItem({ task }: TaskItemProps) {
           <button
             type="button"
             onClick={handleMarkDone}
-            className="text-[11px] font-medium text-[#3525cd] hover:underline underline-offset-4"
+            className="text-[11px] font-medium text-primary hover:underline underline-offset-4"
           >
             Mark done
           </button>
         )}
+        
       </div>
     </div>
   );

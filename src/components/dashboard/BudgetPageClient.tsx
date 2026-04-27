@@ -1,7 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { NewTransactionModal } from "./NewTransactionModal";
+import { useToast } from "../ui/ToastProvider";
+import { Trash2 } from "lucide-react";
 
 type Transaction = {
   _id: string;
@@ -10,6 +12,7 @@ type Transaction = {
   category: string;
   date: string;
   note?: string;
+  description?: string;
 };
 
 type BudgetPageClientProps = {
@@ -23,10 +26,70 @@ export function BudgetPageClient({
   totalIncome: initialIncome,
   totalExpense: initialExpense,
 }: BudgetPageClientProps) {
-  const [transactions, setTransactions] = useState(initialTransactions);
-  const [totalIncome, setTotalIncome] = useState(initialIncome);
-  const [totalExpense, setTotalExpense] = useState(initialExpense);
+  const [list, setList] = useState<Transaction[]>(initialTransactions);
   const [modalOpen, setModalOpen] = useState(false);
+  const [editing, setEditing] = useState<Transaction | null>(null);
+
+  const { showToast } = useToast();
+
+  const { totalIncome, totalExpenses, balance } = useMemo(() => {
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+
+    let income = 0;
+    let expenses = 0;
+
+    for (const tx of list) {
+      const d = new Date(tx.date);
+      if (d.getMonth() !== currentMonth || d.getFullYear() !== currentYear) continue;
+
+      if (tx.type === "income") income += tx.amount;
+      if (tx.type === "expense") expenses += tx.amount;
+    }
+
+    return {
+      totalIncome: income,
+      totalExpenses: expenses,
+      balance: income - expenses,
+    };
+  }, [list]);
+
+
+  const handleCreated = (tx: Transaction) => {
+    setList((prev) => [tx, ...prev]);
+  };
+
+  const handleUpdated = (tx: Transaction) => {
+    setList((prev) =>
+      prev.map((t) => (t._id === tx._id ? tx : t))
+    );
+  };
+
+  const handleDelete = async (id: string) => {
+    // if (!confirm("Delete this transaction?")) return;
+
+    try {
+      const res = await fetch("/api/transactions", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ id }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        showToast(data?.message || "Failed to delete transaction.", "error");
+        return;
+      }
+
+      showToast("Transaction deleted.");
+      setList((prev) => prev.filter((t) => t._id !== id));
+    } catch (err) {
+      console.error(err);
+      showToast("Something went wrong. Please try again.", "error");
+    }
+  };
 
   const reloadFromServer = async () => {
     try {
@@ -46,18 +109,10 @@ export function BudgetPageClient({
           category: t.category,
           date: t.date,
           note: t.note,
+          description: t.description,
         }));
 
-        const inc = txs
-          .filter((t) => t.type === "income")
-          .reduce((sum, t) => sum + t.amount, 0);
-        const exp = txs
-          .filter((t) => t.type === "expense")
-          .reduce((sum, t) => sum + t.amount, 0);
-
-        setTransactions(txs);
-        setTotalIncome(inc);
-        setTotalExpense(exp);
+        setList(txs);
       }
     } catch (error) {
       console.error("Failed to reload transactions", error);
@@ -67,34 +122,45 @@ export function BudgetPageClient({
   return (
     <>
       <section className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+        {/* Income */}
         <div className="bg-surface-container-low rounded-2xl p-4 border border-outline-variant/30">
           <p className="text-[11px] font-bold text-outline uppercase tracking-widest">
-            Income
+            Income (this month)
           </p>
-          <p className="text-xl font-headline font-bold text-on-surface">
-            {totalIncome.toLocaleString()}
+          <p className="text-2xl font-headline font-bold text-on-surface">
+            {totalIncome.toLocaleString()} FCFA
+          </p>
+          <p className="text-[11px] text-on-surface-variant mt-1">
+            Money coming into your student budget.
           </p>
         </div>
+
+        {/* Expenses */}
         <div className="bg-surface-container-low rounded-2xl p-4 border border-outline-variant/30">
           <p className="text-[11px] font-bold text-outline uppercase tracking-widest">
-            Expenses
+            Expenses (this month)
           </p>
-          <p className="text-xl font-headline font-bold text-on-surface">
-            {totalExpense.toLocaleString()}
+          <p className="text-2xl font-headline font-bold text-error">
+            {totalExpenses.toLocaleString()} FCFA
+          </p>
+          <p className="text-[11px] text-on-surface-variant mt-1">
+            What you&apos;ve already spent on fees, transport, etc.
           </p>
         </div>
-        <div className="bg-surface-container-low rounded-2xl p-4 border border-outline-variant/30">
-          <p className="text-[11px] font-bold text-outline uppercase tracking-widest">
-            Net
+
+        {/* Net balance */}
+        <div className="bg-primary-container rounded-2xl p-4 border border-outline-variant/30 text-on-primary-container">
+          <p className="text-[11px] font-bold uppercase tracking-widest">
+            Remaining balance
           </p>
           <p
-            className={`text-xl font-headline font-bold ${
-              totalIncome - totalExpense >= 0
-                ? "text-secondary"
-                : "text-error"
-            }`}
+            className={`text-2xl font-headline font-bold ${balance >= 0 ? "text-on-primary-container" : "text-error"
+              }`}
           >
-            {(totalIncome - totalExpense).toLocaleString()}
+            {balance.toLocaleString()} FCFA
+          </p>
+          <p className="text-[11px] text-on-primary-container/80 mt-1">
+            Positive means you&apos;re safe; negative means overspending.
           </p>
         </div>
       </section>
@@ -114,48 +180,48 @@ export function BudgetPageClient({
           </button>
         </div>
 
-        {transactions.length === 0 && (
+        {list.length === 0 && (
           <p className="text-xs text-outline">
             No transactions yet. Add your first income or expense.
           </p>
         )}
 
-        {transactions.length > 0 && (
+        {list.length > 0 && (
           <div className="overflow-x-auto">
             <table className="min-w-full text-xs">
-              <thead>
-                <tr className="text-left text-[11px] text-outline border-b border-outline-variant/30">
-                  <th className="py-2 pr-4">Date</th>
-                  <th className="py-2 pr-4">Type</th>
-                  <th className="py-2 pr-4">Category</th>
-                  <th className="py-2 pr-4">Note</th>
-                  <th className="py-2 pr-4 text-right">Amount</th>
-                </tr>
-              </thead>
+              {/* ... */}
               <tbody>
-                {transactions.map((t) => (
-                  <tr
-                    key={t._id}
-                    className="border-b border-outline-variant/20"
-                  >
-                    <td className="py-2 pr-4">
-                      {new Date(t.date).toLocaleDateString()}
+                {list.map((tx) => (
+                  <tr key={tx._id} className="border-b border-outline-variant/20">
+                    <td className="py-2">
+                      {tx.date ? new Date(tx.date).toLocaleDateString() : ""}
                     </td>
-                    <td className="py-2 pr-4">
-                      <span
-                        className={`px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-widest ${
-                          t.type === "income"
-                            ? "bg-secondary/10 text-secondary"
-                            : "bg-error/10 text-error"
-                        }`}
-                      >
-                        {t.type}
-                      </span>
+                    <td className="py-2">{tx.type}</td>
+                    <td className="py-2">{tx.category}</td>
+                    <td className="py-2 hidden md:table-cell text-on-surface-variant">
+                      {tx.description}
                     </td>
-                    <td className="py-2 pr-4">{t.category}</td>
-                    <td className="py-2 pr-4">{t.note}</td>
-                    <td className="py-2 pr-4 text-right">
-                      {t.amount.toLocaleString()}
+                    <td className="py-2 text-right">
+                      {tx.type === "expense" ? "-" : "+"}
+                      {tx.amount.toLocaleString()}
+                    </td>
+                    <td className="py-2">
+                      <div className="flex items-center gap-3 justify-end">
+                        <button
+                          type="button"
+                          onClick={() => setEditing(tx)}
+                          className="text-[11px] text-on-surface-variant hover:text-primary"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDelete(tx._id)}
+                          className="text-[11px] text-error hover:text-error/80"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
