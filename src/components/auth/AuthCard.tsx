@@ -6,8 +6,16 @@ import { LoginForm } from "./LoginForm";
 import { SignUpForm } from "./SignUpForm";
 import { SocialButtons } from "./SocialButtons";
 
-export function AuthCard() {
+type SignUpFormProps = {
+  onSignupSuccess?: () => void;
+};
+
+export function AuthCard({ onSignupSuccess }: SignUpFormProps) {
   const [activeTab, setActiveTab] = useState<"signup" | "login">("signup");
+
+  const handleSignupSuccess = () => {
+    setActiveTab("login");
+  };
 
   return (
     <section className="w-full max-w-120">
@@ -25,25 +33,29 @@ export function AuthCard() {
           </p>
         </div>
 
-        {activeTab === "signup" ? <SignUpForm /> : <LoginForm />}
+        {activeTab === "signup" ? (
+          <SignUpForm onSignupSuccess={handleSignupSuccess} />
+        ) : (
+          <LoginForm />
+        )}
 
         <div className="relative my-10 flex items-center">
-          <div className="grow border-t border-[#c7c4d8]/30" />
-          <span className="shrink mx-4 text-[10px] font-bold text-[#777587] uppercase tracking-widest">
+          <div className="grow border-t border-outline-variant/30" />
+          <span className="shrink mx-4 text-[10px] font-bold text-outline uppercase tracking-widest">
             social join
           </span>
-          <div className="grow border-t border-[#c7c4d8]/30" />
+          <div className="grow border-t border-outline-variant/30" />
         </div>
 
         <SocialButtons />
 
-        <p className="text-center mt-10 text-xs text-[#777587] font-medium">
+        <p className="text-center mt-10 text-xs text-outline font-medium">
           By continuing, you agree to the{" "}
-          <a className="text-[#3525cd] hover:underline underline-offset-4" href="#">
+          <a className="text-primary hover:underline underline-offset-4" href="#">
             Terms of Sanctuary
           </a>{" "}
           and{" "}
-          <a className="text-[#3525cd] hover:underline underline-offset-4" href="#">
+          <a className="text-primary hover:underline underline-offset-4" href="#">
             Privacy Policy
           </a>
           .

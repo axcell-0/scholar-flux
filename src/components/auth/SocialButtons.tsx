@@ -1,27 +1,27 @@
+"use client";
+
+import { useToast } from "@/components/ui/ToastProvider";
+
 export function SocialButtons() {
+  const { showToast } = useToast();
+
   return (
     <div className="grid grid-cols-2 gap-4">
       <button
         type="button"
-        className="flex items-center justify-center gap-3 py-3 border border-[#c7c4d8]/40 rounded-xl hover:bg-[#eff4ff] transition-colors duration-300"
+        onClick={() => showToast("Sign in with Google is coming soon.")}
+        className="flex items-center justify-center gap-3 py-3 border border-outline-variant/40 rounded-xl hover:bg-surface-container transition-colors duration-300"
       >
-        <img
-          alt="Google"
-          className="w-5 h-5"
-          src="https://lh3.googleusercontent.com/aida-public/AB6AXuAF4OjUNUaJV4a_VxaHC3oEfngMR27hTN4EUVHRSjSJNlCaZfRrVlDdLPwJ6yfGzMO0o8VKsmO3xW7o5rQS3joDspagVUdgBeq2ZHiJbGqiwPaJcmPJPHA4DkOt90MrGnpQoaM-32dLMVwt9sUiCHW2mIgS0BewQP-PO5S2G_3_NlVh3WABIZgJTdv1OZhO8oX79iQN_xtPNbc4_-hoFI2-ZeSHjerzTWoZ3PaqtcoKcP4s36aTf6abQPwqh5pjqFRDR8Zfh6fFzOg"
-        />
+        <img alt="Google" className="w-10 h-10" src="/google.jpg" />
         <span className="text-sm font-bold text-[#232830]">Google</span>
       </button>
 
       <button
         type="button"
-        className="flex items-center justify-center gap-3 py-3 border border-[#c7c4d8]/40 rounded-xl hover:bg-[#eff4ff] transition-colors duration-300"
+        onClick={() => showToast("Sign in with Apple is coming soon.")}
+        className="flex items-center justify-center gap-3 py-3 border border-outline-variant/40 rounded-xl hover:bg-surface-container transition-colors duration-300"
       >
-        <img
-          alt="Apple"
-          className="w-5 h-5"
-          src="https://lh3.googleusercontent.com/aida-public/AB6AXuA5vpkb2Q66lNpg4XA_JBLYAWC-aIyvSf3cCUeL3HINc4eAnKg_b8C_LqXq5a2Qz1fcPLw0NIdphzW4RTHI_NI2J-fvxEIaUWbschSy3Ult2mzsxz8N6sC9TXOiEgfoH_oCg8P8jbg-8763xcs-MItEDFEnO7ykdr2q7eMzPo0qou-FJP5OroltBMcYQemIke57Js-MKOebi8bs2q7Fmun3nuSHWnEJui38iYLpIeto_sJ3ib2cRGfZAnTYYXynwSGcsS2mZJ_RNGg"
-        />
+        <img alt="Apple" className="w-10 h-10" src="/apple.png" />
         <span className="text-sm font-bold text-[#232830]">Apple</span>
       </button>
     </div>

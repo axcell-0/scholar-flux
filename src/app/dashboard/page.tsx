@@ -117,19 +117,67 @@ export default async function DashboardPage() {
         />
       </section>
 
-      {/* Middle grid: Tasks + Habits */}
-      <section className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      {/* Middle grid: Tasks + Habits + Study Coach */}
+      <section className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-4 gap-4">
         {/* Tasks */}
-        <div className="lg:col-span-2">
+        <div className="md:col-span-2">
           <TasksPanel tasks={tasksForClient} />
         </div>
 
         {/* Habits */}
         <HabitsPanel />
+
+        {/* Study Coach card */}
+        <div className="rounded-2xl bg-surface-container-low border border-outline-variant/40 p-4 md:p-5 flex flex-col gap-3">
+          <div className="flex items-center justify-between gap-2">
+            <div>
+              <p className="text-[11px] font-bold text-outline uppercase tracking-widest">
+                Study Coach
+              </p>
+              <h3 className="text-sm md:text-base font-headline font-semibold text-on-surface">
+                Coming soon
+              </h3>
+            </div>
+            <span className="inline-flex items-center gap-1 rounded-full bg-primary-container text-on-primary-container px-3 py-1 text-[11px] font-medium">
+              <span className="material-symbols-outlined text-sm">auto_awesome</span>
+              AI-powered
+            </span>
+          </div>
+
+          <p className="text-xs text-on-surface-variant leading-relaxed">
+            Scholar Flux will use your tasks, habits, and exam dates to suggest what
+            to study next, so you don&apos;t waste time deciding where to start.
+          </p>
+
+          <ul className="text-[11px] text-on-surface-variant space-y-1">
+            <li className="flex items-start gap-1.5">
+              <span className="material-symbols-outlined text-[14px] text-primary mt-px">
+                check_circle
+              </span>
+              <span>Auto-generated weekly study plan from your existing tasks.</span>
+            </li>
+            <li className="flex items-start gap-1.5">
+              <span className="material-symbols-outlined text-[14px] text-primary mt-px">
+                check_circle
+              </span>
+              <span>Reminders when you&apos;re close to missing a habit streak.</span>
+            </li>
+            <li className="flex items-start gap-1.5">
+              <span className="material-symbols-outlined text-[14px] text-primary mt-px">
+                check_circle
+              </span>
+              <span>Suggestions for which course to revise based on deadlines.</span>
+            </li>
+          </ul>
+
+          <p className="text-[11px] text-on-surface-variant/80 mt-1">
+            This feature is designed but not yet activated in this version.
+          </p>
+        </div>
       </section>
 
       {/* Bottom: Budget */}
-      <section className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      < section className="grid grid-cols-1 lg:grid-cols-2 gap-4" >
         <div className="bg-surface-container-low rounded-2xl p-4 md:p-5 border border-outline-variant/30">
           <div className="flex items-center justify-between mb-4">
             <div>
@@ -185,7 +233,7 @@ export default async function DashboardPage() {
           </div>
         </div>
         {/* Notes & Intentions panel stays the same */}
-      </section>
-    </div>
+      </section >
+    </div >
   );
 }

@@ -15,7 +15,11 @@ type RegisterResponse = {
   };
 };
 
-export function SignUpForm() {
+type SignUpFormProps = {
+  onSignupSuccess?: () => void;
+};
+
+export function SignUpForm({ onSignupSuccess }: SignUpFormProps) {
   const [form, setForm] = useState({
     fullName: "",
     email: "",
@@ -54,7 +58,7 @@ export function SignUpForm() {
     }
 
     try {
-      const res = await fetch("/api/auth/signup", {
+      const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -62,8 +66,7 @@ export function SignUpForm() {
           fullName: form.fullName,
           email: form.email,
           password: form.password,
-          // add department/level here if your API expects them,
-          // e.g. department: form.department, level: form.level
+          // department / level if needed
         }),
       });
 
@@ -81,8 +84,13 @@ export function SignUpForm() {
       }
 
       setSuccess("Account created successfully.");
-      showToast("Account created. Welcome to Scholar Flux!");
-      router.push("/login"); // or "/login" if you prefer
+      showToast("Account created. You can now log in.");
+
+      // Clear password, keep email
+      setForm((prev) => ({ ...prev, password: "" }));
+
+      // Switch to login tab instead of redirecting
+      onSignupSuccess?.();
     } catch (err) {
       console.error(err);
       const message = "Something went wrong. Please try again.";

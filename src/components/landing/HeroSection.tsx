@@ -11,13 +11,13 @@ export function HeroSection() {
               auto_awesome
             </span>
           </div>
-          <span className="text-xl font-extrabold tracking-tighter text-[#3525cd] font-headline">
+          <span className="text-xl font-extrabold tracking-tighter text-primary font-headline">
             Sanctuary
           </span>
         </div>
 
         <h1 className="font-headline text-5xl md:text-6xl font-extrabold text-[#556483] editorial-spacing leading-tight">
-          Your focus is <span className="text-[#3525cd]">sacred.</span>
+          Your focus is <span className="text-primary">sacred.</span>
         </h1>
 
         <p className="mt-6 text-lg text-outline font-medium leading-relaxed">

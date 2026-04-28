@@ -51,7 +51,7 @@ export function DashboardShell({
                         </span>
                     </div>
                     <div>
-                        <p className="font-headline font-bold text-inverse-on-surface text-sm">
+                        <p className="font-headline font-bold text-sm text-on-surface">
                             Scholar Flux
                         </p>
                         <p className="text-[11px] text-outline">Student Life Manager</p>
@@ -101,7 +101,7 @@ export function DashboardShell({
 
                 <div className="mt-auto pt-6 border-t border-outline-variant/30">
                     <p className="text-xs text-outline mb-1">Logged in as</p>
-                    <p className="text-sm font-medium text-inverse-on-surface">{fullName}</p>
+                    <p className="text-sm font-medium text-on-surface">{fullName}</p>
                     <p className="text-xs text-outline">{email}</p>
                 </div>
             </aside>
@@ -124,7 +124,7 @@ export function DashboardShell({
                                     </span>
                                 </div>
                                 <div>
-                                    <p className="font-headline font-bold text-inverse-on-surface text-sm">
+                                    <p className="font-headline font-bold text-on-surface text-sm">
                                         Scholar Flux
                                     </p>
                                     <p className="text-[11px] text-outline">Student Life Manager</p>
@@ -194,7 +194,7 @@ export function DashboardShell({
 
                         <div className="mt-10 pt-4 border-t border-outline-variant/30">
                             <p className="text-xs text-outline mb-1">Logged in as</p>
-                            <p className="text-sm font-medium text-inverse-on-surface">{fullName}</p>
+                            <p className="text-sm font-medium text-on-surface">{fullName}</p>
                             <p className="text-xs text-outline">{email}</p>
                         </div>
                     </div>
@@ -238,14 +238,6 @@ export function DashboardShell({
                     </div>
 
                     <div className="flex items-center gap-3">
-                        <span className="hidden md:inline-block text-xs text-outline">
-                            Focus mode enabled
-                        </span>
-                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                            <span className="material-symbols-outlined text-primary text-lg">
-                                person
-                            </span>
-                        </div>
                         <div className="flex flex-col">
                             <span className="text-xs font-medium text-on-surface">
                                 {firstName}
