@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { IconInput } from "../ui/IconInput";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/ui/ToastProvider";
+import { useSearchParams } from "next/navigation";
 
 type LoginResponse = {
   success: boolean;
@@ -20,7 +21,7 @@ type LoginResponse = {
 export function LoginForm() {
   const router = useRouter();
   const { showToast } = useToast();
-
+  const searchParams = useSearchParams();
   const [form, setForm] = useState({
     email: "",
     password: "",
@@ -29,6 +30,7 @@ export function LoginForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm((prev) => ({
@@ -39,6 +41,12 @@ export function LoginForm() {
     setError("");
     setSuccess("");
   };
+
+  useEffect(() => {
+    if (searchParams.get("verified") === "1") {
+      setSuccess("Email verified! You're all set to log in.");
+    }
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -147,6 +155,15 @@ export function LoginForm() {
       >
         {loading ? "Logging in..." : "Login"}
       </button>
+      <div className="flex justify-end">
+        <button
+          type="button"
+          onClick={() => router.push("/forgot-password")}
+          className="text-[11px] text-primary hover:underline"
+        >
+          Forgot password?
+        </button>
+      </div>
     </form>
   );
 }

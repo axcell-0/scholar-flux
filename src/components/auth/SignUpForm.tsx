@@ -78,9 +78,14 @@ export function SignUpForm({ onSignupSuccess }: SignUpFormProps) {
           (res.status === 409
             ? "This email is already registered."
             : "We couldn’t create your account.");
+
         setError(message);
         showToast(message, "error");
         return;
+      } if (data.success) {
+           showToast("Account created. Please enter the verification code sent to your email.");
+           router.push(`/verify-code?email=${encodeURIComponent(form.email)}`);
+           return;
       }
 
       setSuccess("Account created successfully.");

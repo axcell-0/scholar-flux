@@ -4,11 +4,16 @@ import bcrypt from "bcryptjs";
 export interface IUser {
   fullName: string;
   email: string;
-  password: string;
   department?: string;
   level?: string;
   createdAt?: Date;
   updatedAt?: Date;
+  emailVerified?: boolean;
+  emailVerificationCode?: string;
+  emailVerificationCodeExpires?: string;
+  resetPasswordToken?: string;
+  resetPasswordExpires?: Date;
+  passwordHash?: string;
   comparePassword(candidatePassword: string): Promise<boolean>;
 }
 
@@ -26,11 +31,31 @@ const UserSchema = new Schema<IUser>(
       trim: true,
       lowercase: true,
     },
-    password: {
+    passwordHash: {
       type: String,
-      required: [true, "Password is required"],
+      required: [true, "HASHED_PASSWORD_IS_MISSING"],
       minlength: 6,
       select: false,
+    },
+    emailVerified: {
+      type: Boolean,
+      default: false,
+    },
+    emailVerificationCode: {
+      type: String,
+      default: null,
+      select: false,
+    },
+    emailVerificationCodeExpires: {
+      type: Date,
+      default: null,
+    },
+    resetPasswordToken: {
+      type: String,
+      select: false,
+    },
+    resetPasswordExpires: {
+      type: Date,
     },
     department: {
       type: String,
@@ -48,15 +73,11 @@ const UserSchema = new Schema<IUser>(
   }
 );
 
-UserSchema.pre("save", async function () {
-  if (!this.isModified("password")) return;
-
-  const saltRounds = 10;
-  this.password = await bcrypt.hash(this.password, saltRounds);
-});
-
-UserSchema.methods.comparePassword = async function (candidatePassword: string) {
-  return bcrypt.compare(candidatePassword, this.password);
+UserSchema.methods.comparePassword = async function (
+  this: IUser,
+  candidatePassword: string
+) {
+  return bcrypt.compare(candidatePassword, this.passwordHash!);
 };
 
 const User =

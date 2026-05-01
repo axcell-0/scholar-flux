@@ -168,7 +168,7 @@ export function NotesPageClient() {
       <div className="grid gap-4 lg:grid-cols-[1.4fr,2fr]">
         {/* LEFT: notes list */}
         <div className="space-y-3">
-          <div className="rounded-2xl border border-outline-variant/30 bg-surface-container-low p-3 max-h-[480px] overflow-auto space-y-3">
+          <div className="rounded-2xl border border-outline-variant/30 bg-surface-container-low p-3 max-h-120 overflow-auto space-y-3">
             {notes.map((note) => {
               const isSelected = selectedNote?._id === note._id;
               return (
@@ -230,7 +230,7 @@ export function NotesPageClient() {
         <div className="space-y-3">
           {selectedNote ? (
             <>
-              <div className="rounded-2xl border border-outline-variant/30 bg-surface p-4 space-y-2 max-h-[260px] overflow-auto">
+              <div className="rounded-2xl border border-outline-variant/30 bg-surface p-4 space-y-2 max-h-65 overflow-auto">
                 <h3 className="text-sm font-headline text-on-surface">
                   {selectedNote.title}
                 </h3>
@@ -260,7 +260,7 @@ export function NotesPageClient() {
                 )}
 
                 {summary && (
-                  <div className="rounded-2xl border border-primary/20 bg-primary/5 p-3 max-h-[260px] overflow-auto">
+                  <div className="rounded-2xl border border-primary/20 bg-primary/5 p-3 max-h-65 overflow-auto">
                     <h4 className="text-[11px] font-semibold text-primary mb-1">
                       AI Summary
                     </h4>

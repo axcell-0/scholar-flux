@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
     await dbConnect();
 
     const user = await User.findOne({ email: email.toLowerCase() }).select(
-      "+password"
+      "+passwordHash"
     );
 
     if (!user) {
@@ -42,6 +42,16 @@ export async function POST(request: NextRequest) {
         {
           success: false,
           message: "Invalid email or password.",
+        },
+        { status: 401 }
+      );
+    }
+
+    if (!user.emailVerified) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Please verify your email address before logging in.",
         },
         { status: 401 }
       );

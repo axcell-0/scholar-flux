@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AuthTabs } from "./AuthTabs";
 import { LoginForm } from "./LoginForm";
 import { SignUpForm } from "./SignUpForm";
 import { SocialButtons } from "./SocialButtons";
+import { useSearchParams } from "next/navigation";
 
 type SignUpFormProps = {
   onSignupSuccess?: () => void;
@@ -12,10 +13,14 @@ type SignUpFormProps = {
 
 export function AuthCard({ onSignupSuccess }: SignUpFormProps) {
   const [activeTab, setActiveTab] = useState<"signup" | "login">("signup");
+  const searchParams = useSearchParams();
 
-  const handleSignupSuccess = () => {
-    setActiveTab("login");
-  };
+  useEffect(() => {
+    const mode = searchParams.get("mode");
+    if (mode === "login") {
+      setActiveTab("login");
+    }
+  }, [searchParams]);
 
   return (
     <section className="w-full max-w-120">
@@ -33,8 +38,8 @@ export function AuthCard({ onSignupSuccess }: SignUpFormProps) {
           </p>
         </div>
 
-        {activeTab === "signup" ? (
-          <SignUpForm onSignupSuccess={handleSignupSuccess} />
+      {activeTab === "signup" ? (
+          <SignUpForm onSignupSuccess={() => setActiveTab("login")} />
         ) : (
           <LoginForm />
         )}

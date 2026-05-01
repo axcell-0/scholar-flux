@@ -31,13 +31,13 @@ export default async function DashboardLayout({
   );
 
   return (
-    <DashboardShell
-      fullName={payload.fullName}
-      email={payload.email}
-      department={user?.department || ""}
-      level={user?.level || ""}
-    >
-      {children}
-    </DashboardShell>
+      <DashboardShell
+        fullName={payload.fullName}
+        email={payload.email}
+        department={user?.department || ""}
+        level={user?.level || ""}
+      >
+        {children}
+      </DashboardShell>
   );
 }

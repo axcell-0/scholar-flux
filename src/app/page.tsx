@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { AuthCard } from "@/components/auth/AuthCard";
 import { FeatureHighlights } from "@/components/landing/FeatureHighlights";
 import { HeroSection } from "@/components/landing/HeroSection";
@@ -5,6 +6,7 @@ import { HeroSection } from "@/components/landing/HeroSection";
 export default function HomePage() {
   return (
     <>
+    <div className="flex justify-center items-center">
       <div className="fixed top-0 left-0 w-full h-full pointer-events-none z-0 opacity-40 md:opacity-100">
         <div className="absolute -top-24 -left-24 w-96 h-96 bg-surface-container rounded-full blur-[100px]" />
         <div className="absolute bottom-0 right-0 w-125 h-125 bg-primary/5 rounded-full blur-[120px]" />
@@ -16,7 +18,9 @@ export default function HomePage() {
           <FeatureHighlights />
         </div>
 
-        <AuthCard />
+        <Suspense fallback={<div>Loading...</div>}>
+          <AuthCard />
+        </Suspense>
       </main>
 
       <div className="fixed bottom-0 left-0 w-full overflow-hidden pointer-events-none select-none opacity-50 z-[-1]">
@@ -32,6 +36,7 @@ export default function HomePage() {
             fill="#eff4ff"
           />
         </svg>
+      </div>
       </div>
     </>
   );
