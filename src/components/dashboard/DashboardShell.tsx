@@ -112,7 +112,7 @@ export function DashboardShell({
                     className="fixed inset-0 z-40 flex md:hidden"
                     onClick={() => setSidebarOpen(false)}
                 >
-                    <div className="w-64 bg-surface-container-high border-r border-outline-variant/40p-6">
+                    <div className="w-64 bg-surface-container-high px-4 py-6 border-r border-outline-variant/40p-6">
                         <div className="flex items-center justify-between mb-8">
                             <div className="flex items-center gap-3">
                                 <div className="w-9 h-9 signature-gradient rounded-xl flex items-center justify-center">
@@ -139,7 +139,7 @@ export function DashboardShell({
                                     setSidebarOpen(false);
                                 }}
                             >
-                                <span className="material-symbols-outlined text-inverse-on-surface text-base">
+                                <span className="material-symbols-outlined text-on-surface text-base">
                                     close
                                 </span>
                             </button>
@@ -192,10 +192,17 @@ export function DashboardShell({
                             />
                         </nav>
 
-                        <div className="mt-10 pt-4 border-t border-outline-variant/30">
+                        <div className="mt-10 pt-4 border-t px-6 border-outline-variant/30">
                             <p className="text-xs text-outline mb-1">Logged in as</p>
-                            <p className="text-sm font-medium text-on-surface">{fullName}</p>
-                            <p className="text-xs text-outline">{email}</p>
+                            <p className="text-sm pt-2 font-medium text-on-surface">{fullName}</p>
+                            <p className="text-xs pt-2 pb-2 text-outline">{email}</p>
+                            <button
+                            type="button"
+                            className="px-3 py-1.5 pt-2 rounded-full text-sm font-medium bg-error text-on-error hover:bg-error/90 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-error focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
+                            onClick={handleLogout}
+                            >
+                            <LogOut size={18} />
+                            </button>
                         </div>
                     </div>
 
@@ -205,25 +212,22 @@ export function DashboardShell({
 
             {/* Main content */}
             <div className="flex-1 flex flex-col">
-                <header className="flex items-center justify-between px-4 md:px-8 py-4 border-b border-outline-variant/30 bg-surface-container/60 backdrop-blur">
-                    <div className="flex items-center gap-3">
+                <header className="">
+                    <div className="flex items-center justify-between px-6 py-4 border-b border-outline-variant/30 bg-surface-container/60 backdrop-blur">
                         {/* Mobile menu button */}
                         <button
                             type="button"
                             className="inline-flex md:hidden w-9 h-9 rounded-full bg-surface border border-outline-variant/40 items-center justify-center"
                             onClick={() => setSidebarOpen(true)}
                         >
-                            <span className="material-symbols-outlined text-inverse-on-surface text-base">
+                            <span className="material-symbols-outlined text-on-surface text-base">
                                 menu
                             </span>
                         </button>
 
-                        <div>
-                            <h1 className="text-lg md:text-xl font-headline font-bold text-inverse-on-surface">
-                                Daily Overview
-                            </h1>
+                        <div className="flex flex-col justify-between gap-10">
                             <p className="text-xs md:text-sm text-outline">
-                                See today&apos;s tasks, habits, and budget at a glance.
+                                See today&apos;s tasks, <br></br>habits, and budget at a glance.
                             </p>
                             {(department || level) && (
                                 <p className="text-[11px] md:text-xs text-on-surface-variant mt-1">
@@ -235,24 +239,6 @@ export function DashboardShell({
                                 </p>
                             )}
                         </div>
-                    </div>
-
-                    <div className="flex items-center gap-3">
-                        <div className="flex flex-col">
-                            <span className="text-xs font-medium text-on-surface">
-                                {firstName}
-                            </span>
-                            <span className="text-[11px] text-outline truncate max-w-35">
-                                {email}
-                            </span>
-                        </div>
-                        <button
-                            type="button"
-                            className="px-3 py-1.5 rounded-full text-sm font-medium bg-error text-on-error hover:bg-error/90 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-error focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
-                            onClick={handleLogout}
-                        >
-                            <LogOut size={18} />
-                        </button>
                     </div>
                 </header>
 

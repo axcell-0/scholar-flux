@@ -66,7 +66,7 @@ export default async function DashboardPage() {
     .filter((t) => t.type === "expense")
     .reduce((sum, t) => sum + t.amount, 0);
 
-  const monthlyBudget = 60000; // you can make this configurable later
+  const monthlyBudget = 60000; // configure this as needed so that the progress bar looks good in the demo with the sample transactions
   const spent = totalExpense;
   const remaining = monthlyBudget - spent;
 
@@ -177,7 +177,7 @@ export default async function DashboardPage() {
       </section>
 
       {/* Bottom: Budget */}
-      < section className="grid grid-cols-1 lg:grid-cols-2 gap-4" >
+      < section className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="bg-surface-container-low rounded-2xl p-4 md:p-5 border border-outline-variant/30">
           <div className="flex items-center justify-between mb-4">
             <div>
@@ -233,7 +233,7 @@ export default async function DashboardPage() {
           </div>
         </div>
         {/* Notes & Intentions panel stays the same */}
-      </section >
+      </section>
     </div >
   );
 }
