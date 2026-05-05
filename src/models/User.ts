@@ -14,6 +14,8 @@ export interface IUser {
   resetPasswordToken?: string;
   resetPasswordExpires?: Date;
   passwordHash?: string;
+  budget?: number;
+  monthlyBudget?: number;
   comparePassword(candidatePassword: string): Promise<boolean>;
 }
 
@@ -61,6 +63,14 @@ const UserSchema = new Schema<IUser>(
       type: String,
       trim: true,
       default: "",
+    },
+    budget: {
+      type: Number,
+      default: 0,
+    },
+    monthlyBudget: {
+      type: Number,
+      default: 0,
     },
     level: {
       type: String,

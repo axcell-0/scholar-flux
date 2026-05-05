@@ -6,6 +6,9 @@ import { StatCard } from "@/components/dashboard/StatCard";
 import { TasksPanel } from "@/components/dashboard/TasksPanel";
 import { HabitsPanel } from "@/components/dashboard/HabitsPanel";
 import Transaction from "@/models/Transaction";
+import User from "@/models/User";
+import { LiveBudgetPanel } from "@/components/dashboard/LiveBudgetPanel";
+import { LiveBudgetStat } from "@/components/dashboard/LiveBudgetStat";
 
 export default async function DashboardPage() {
   const cookieStore = await cookies();
@@ -13,6 +16,7 @@ export default async function DashboardPage() {
 
   let tasks: any[] = [];
   let transactions: any[] = [];
+  let monthlyBudget = 0;
 
   const now = new Date();
 
@@ -20,6 +24,13 @@ export default async function DashboardPage() {
     const payload = verifyAuthToken(token);
     if (payload) {
       await dbConnect();
+
+      // You can fetch this from user data if needed
+        const user = await User.findById(payload.userId)
+  .select('monthlyBudget') 
+  .lean() as { monthlyBudget?: number } | null;
+
+    monthlyBudget = user?.monthlyBudget ?? 0;
 
       // Tasks
       tasks = await Task.find({ userId: payload.userId })
@@ -66,7 +77,6 @@ export default async function DashboardPage() {
     .filter((t) => t.type === "expense")
     .reduce((sum, t) => sum + t.amount, 0);
 
-  const monthlyBudget = 60000; // configure this as needed so that the progress bar looks good in the demo with the sample transactions
   const spent = totalExpense;
   const remaining = monthlyBudget - spent;
 
@@ -108,13 +118,7 @@ export default async function DashboardPage() {
           icon="auto_graph"
           accent="secondary"
         />
-        <StatCard
-          label="Monthly Budget"
-          value={`${spentPercent}% used`}
-          sublabel={`Spent ${spent.toLocaleString()} · Remaining ${remaining.toLocaleString()}`}
-          icon="account_balance_wallet"
-          accent="tertiary"
-        />
+        <LiveBudgetStat />
       </section>
 
       {/* Middle grid: Tasks + Habits + Study Coach */}
@@ -177,63 +181,10 @@ export default async function DashboardPage() {
       </section>
 
       {/* Bottom: Budget */}
-      < section className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="bg-surface-container-low rounded-2xl p-4 md:p-5 border border-outline-variant/30">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h2 className="text-sm md:text-base font-headline font-semibold text-on-surface">
-                Monthly Budget
-              </h2>
-              <p className="text-xs text-outline">
-                {now.toLocaleString("default", { month: "long", year: "numeric" })}
-              </p>
-            </div>
-            <span className="text-[11px] font-semibold text-outline uppercase tracking-widest">
-              {spentPercent}% used
-            </span>
-          </div>
-
-          <div className="space-y-4">
-            <div>
-              <div className="flex justify-between text-xs mb-1 text-outline">
-                <span>Spent</span>
-                <span>{spent.toLocaleString()}</span>
-              </div>
-              <div className="w-full h-2 rounded-full bg-surface-container-highest overflow-hidden">
-                <div
-                  className="h-full bg-primary rounded-full transition-all"
-                  style={{ width: `${spentPercent}%` }}
-                />
-              </div>
-              <p className="text-[11px] text-outline mt-1">
-                Remaining: {remaining.toLocaleString()}
-              </p>
-            </div>
-
-            <div>
-              <p className="text-[11px] font-bold text-outline uppercase tracking-widest mb-2">
-                Top Categories
-              </p>
-              <div className="space-y-2">
-                {topCategories.map((cat) => (
-                  <div
-                    key={cat.name}
-                    className="flex items-center justify-between text-xs bg-white/60 rounded-lg px-3 py-2 border border-outline-variant/30"
-                  >
-                    <span className="font-medium text-on-surface">
-                      {cat.name}
-                    </span>
-                    <span className="text-outline">
-                      {cat.amount.toLocaleString()}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-        {/* Notes & Intentions panel stays the same */}
-      </section>
+      <section className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <LiveBudgetPanel /> {/* ✅ This will now auto-refresh! */}
+          {/* Notes/Intentions... */}
+       </section>
     </div >
   );
 }

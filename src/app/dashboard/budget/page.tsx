@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { dbConnect } from "@/lib/mongodb";
 import { verifyAuthToken } from "@/lib/auth";
 import Transaction from "@/models/Transaction";
+import User from "@/models/User";
 import { BudgetPageClient } from "@/components/dashboard/BudgetPageClient";
 
 export default async function BudgetPage() {
@@ -18,21 +19,23 @@ export default async function BudgetPage() {
 
   const now = new Date();
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-  const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+  const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0); // Corrected to last day of month
 
-  const transactionsRaw = await Transaction.find({
-    userId: payload.userId,
-    date: { $gte: startOfMonth, $lt: endOfMonth },
-  })
-    .sort({ date: -1 })
-    .lean();
+  // Fetch both data points in parallel for better performance
+  const [transactionsRaw, user] = await Promise.all([
+    Transaction.find({
+      userId: payload.userId,
+      date: { $gte: startOfMonth, $lte: endOfMonth },
+    }).sort({ date: -1 }).lean(),
+    User.findById(payload.userId).select("monthlyBudget").lean()
+  ]);
 
   const transactions = transactionsRaw.map((t: any) => ({
     _id: t._id.toString(),
     amount: t.amount,
     type: t.type,
     category: t.category,
-    date: t.date,
+    date: t.date.toISOString(), // Ensure date is a string for the Client Component
     note: t.note,
   }));
 
@@ -61,6 +64,7 @@ export default async function BudgetPage() {
         transactions={transactions}
         totalIncome={totalIncome}
         totalExpense={totalExpense}
+        initialBudget={user?.monthlyBudget || 0} // ✅ Successfully passing from DB
       />
     </div>
   );

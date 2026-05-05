@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { NewTransactionModal } from "./NewTransactionModal";
 import { useToast } from "../ui/ToastProvider";
 import { Trash2 } from "lucide-react";
+import { mutate } from "swr";
 
 type Transaction = {
   _id: string;
@@ -15,23 +16,28 @@ type Transaction = {
   description?: string;
 };
 
+// ✅ Add initialBudget to this interface
 type BudgetPageClientProps = {
   transactions: Transaction[];
   totalIncome: number;
   totalExpense: number;
+  initialBudget: number; // Add this exact line
 };
 
 export function BudgetPageClient({
   transactions: initialTransactions,
   totalIncome: initialIncome,
   totalExpense: initialExpense,
+  initialBudget, // ✅ Destructure it here as well
 }: BudgetPageClientProps) {
   const [list, setList] = useState<Transaction[]>(initialTransactions);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Transaction | null>(null);
+  // Change your state to use the initial value if available
+ const [budgetInput, setBudgetInput] = useState(initialBudget || 0);
+  const [isSaving, setIsSaving] = useState(false);
 
   const { showToast } = useToast();
-
   const { totalIncome, totalExpenses, balance } = useMemo(() => {
     const now = new Date();
     const currentMonth = now.getMonth();
@@ -54,6 +60,50 @@ export function BudgetPageClient({
       balance: income - expenses,
     };
   }, [list]);
+
+  const handleSaveBudget = async () => {
+    if (budgetInput <= 0) {
+        showToast("Please enter a budget greater than 0", "error");
+        return;
+    }
+    
+    setIsSaving(true);
+    try {
+      const res = await fetch("/api/user/update-budget", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ amount: budgetInput }),
+      });
+
+      if (res.ok) {
+        // This triggers the Dashboard to re-fetch and move the progress bar
+        mutate("/api/dashboard/summary"); 
+        showToast("Budget updated successfully!");
+      } else {
+        showToast("Failed to update budget on server", "error");
+      }
+    } catch (error) {
+      console.error("Error saving budget:", error);
+      showToast("Connection error", "error");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+useEffect(() => {
+  async function fetchCurrentBudget() {
+    try {
+      const res = await fetch("/api/dashboard/summary"); // We reuse this since it has the budget
+      const data = await res.json();
+      if (data && data.budget) {
+        setBudgetInput(data.budget);
+      }
+    } catch (err) {
+      console.error("Could not fetch initial budget", err);
+    }
+  }
+  fetchCurrentBudget();
+}, []);
 
 
   const handleCreated = (tx: Transaction) => {
@@ -185,6 +235,23 @@ export function BudgetPageClient({
             No transactions yet. Add your first income or expense.
           </p>
         )}
+
+        <div className="flex items-center gap-2">
+      <input
+        type="number"
+        value={budgetInput}
+        onChange={(e) => setBudgetInput(Number(e.target.value))}
+        className="border rounded-xl px-4 py-2 w-full max-w-50"
+        placeholder="Enter monthly budget..."
+      />
+      <button
+        onClick={handleSaveBudget}
+        disabled={isSaving}
+        className="bg-indigo-600 text-white px-6 py-2 rounded-xl font-bold hover:bg-indigo-700 disabled:opacity-50"
+      >
+        {isSaving ? "Saving..." : "Save Budget"}
+      </button>
+    </div>
 
         {list.length > 0 && (
           <div className="overflow-x-auto">

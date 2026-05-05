@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useToast } from "@/components/ui/ToastProvider";
+import { mutate } from "swr";
 
 type NewTransactionModalProps = {
   open: boolean;
@@ -66,6 +67,7 @@ export function NewTransactionModal({ open, onClose, onCreated }: NewTransaction
         setError(data.message || "Failed to create transaction.");
         return;
       }
+        mutate("/api/transactions"); // Invalidate transactions cache to refresh the list
         showToast("Transaction created successfully!", "success");
 
         setForm({
